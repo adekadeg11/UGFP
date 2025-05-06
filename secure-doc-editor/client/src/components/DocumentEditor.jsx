@@ -75,6 +75,7 @@ const DocumentEditor = () => {
     });
 
     socketRef.current.on('versionSaved', ({ version }) => {
+      console.log("New version received from server:", version);
       setVersions(prev => [...prev, version]);
     });
 

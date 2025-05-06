@@ -37,7 +37,7 @@ exports.switchBranch = (req, res) => {
 };
 
 exports.mergeBranch = (req, res) => {
-  // Simple simulation of a merge: just bring content from one branch into master
+  
   const document = Document.findById(req.params.id);
   if (!document || !document.hasPermission(req.user.id, 'write')) return res.status(403).json({ message: 'Forbidden' });
   const { fromBranch } = req.body;

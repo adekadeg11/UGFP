@@ -1,51 +1,45 @@
-import { NFTStorage, File } from 'nft.storage';
-
-// Get from environment variables
-const NFT_STORAGE_API_KEY = process.env.REACT_APP_NFT_STORAGE_KEY || '<YOUR_NFT_STORAGE_API_KEY>';
-
-if (!NFT_STORAGE_API_KEY) {
-  throw new Error('NFT.Storage API key is required in environment variables');
-}
-
-const client = new NFTStorage({ token: NFT_STORAGE_API_KEY });
+const PINATA_API_KEY = process.env.REACT_APP_PINATA_API_KEY;
+const PINATA_SECRET_API_KEY = process.env.REACT_APP_PINATA_SECRET_API_KEY;
+const PINATA_JWT_TOKEN = process.env.REACT_APP_PINATA_JWT_TOKEN;
 
 export async function uploadToIPFS(content, setProgress) {
   try {
     const blob = new Blob([content], { type: 'text/plain' });
-    const file = new File([blob], 'document.txt');
+    const formData = new FormData();
+    formData.append('file', blob);
 
-    let progress = 0;
-    const fakeProgress = setInterval(() => {
-      progress += 10;
-      if (progress >= 90) clearInterval(fakeProgress);
-      setProgress?.(progress);
-    }, 200);
+    setProgress && setProgress(10);
 
-    const cid = await client.storeBlob(file);
-    clearInterval(fakeProgress);
-    setProgress?.(100);
-    return cid;
+    const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${PINATA_JWT_TOKEN}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error('Pinata upload failed');
+
+    const data = await response.json();
+    setProgress && setProgress(100);
+    return data.IpfsHash;
   } catch (error) {
     console.error('IPFS upload failed:', error);
-    throw new Error('Failed to upload document to IPFS');
+    throw error;
   }
 }
 
 export async function downloadFromIPFS(cid, setProgress) {
-    try {
-        setProgress?.(10);
-        const response = await fetch(`https://ipfs.io/ipfs/${cid}`);
-        
-        if (!response.ok) {
-            throw new Error(`Failed to fetch document from IPFS: ${cid}`);
-        }
-
-        setProgress?.(70);
-        const text = await response.text();
-        setProgress?.(100);
-        return text;
-        } catch (error) {
-            console.error('IPFS download failed:', error);
-            throw new Error('Failed to retrieve document from IPFS');
-    }
+  try {
+    setProgress && setProgress(10);
+    const response = await fetch(`https://gateway.pinata.cloud/ipfs/${cid}`);
+    if (!response.ok) throw new Error(`Failed to fetch from IPFS: ${cid}`);
+    setProgress && setProgress(70);
+    const text = await response.text();
+    setProgress && setProgress(100);
+    return text;
+  } catch (error) {
+    console.error('Download from IPFS failed:', error);
+    throw error;
+  }
 }
