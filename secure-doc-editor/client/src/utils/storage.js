@@ -32,20 +32,20 @@ export async function uploadToIPFS(content, setProgress) {
 }
 
 export async function downloadFromIPFS(cid, setProgress) {
-  try {
-    setProgress?.(10);
-    const response = await fetch(`https://ipfs.io/ipfs/${cid}`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch document from IPFS: ${cid}`);
-    }
+    try {
+        setProgress?.(10);
+        const response = await fetch(`https://ipfs.io/ipfs/${cid}`);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch document from IPFS: ${cid}`);
+        }
 
-    setProgress?.(70);
-    const text = await response.text();
-    setProgress?.(100);
-    return text;
-  } catch (error) {
-    console.error('IPFS download failed:', error);
-    throw new Error('Failed to retrieve document from IPFS');
-  }
+        setProgress?.(70);
+        const text = await response.text();
+        setProgress?.(100);
+        return text;
+        } catch (error) {
+            console.error('IPFS download failed:', error);
+            throw new Error('Failed to retrieve document from IPFS');
+    }
 }

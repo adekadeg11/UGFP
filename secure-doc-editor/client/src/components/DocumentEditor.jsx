@@ -7,7 +7,6 @@ import CryptoJS from 'crypto-js';
 import { uploadToIPFS, downloadFromIPFS } from '../utils/storage';
 import VersionHistory from './VersionHistory';
 
-// Register the cursors module
 Quill.register('modules/cursors', QuillCursors);
 
 const DocumentEditor = () => {
@@ -18,7 +17,6 @@ const DocumentEditor = () => {
   const [versions, setVersions] = useState([]);
   const [error, setError] = useState(null);
 
-  // Get user-specific encryption key
   const userId = localStorage.getItem('userId');
   const getEncryptionKey = useCallback(() => {
     return `${userId}-${process.env.REACT_APP_ENCRYPTION_SECRET || 'fallback-secret'}`;
@@ -27,29 +25,27 @@ const DocumentEditor = () => {
   const token = localStorage.getItem('token');
   const docId = localStorage.getItem('documentId');
 
-  // Initialize Quill editor
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current && !quill) {
       const q = new Quill(editorRef.current, {
         theme: 'snow',
         modules: {
           cursors: {
             transformOnTextChange: true,
             hideDelayMs: 3000,
-            hideSpeedMs: 300
+            hideSpeedMs: 300,
           },
           toolbar: [
             [{ header: [1, 2, false] }],
             ['bold', 'italic', 'underline'],
-            ['image', 'code-block']
-          ]
-        }
+            ['image', 'code-block'],
+          ],
+        },
       });
       setQuill(q);
     }
-  }, []);
+  }, [editorRef, quill]);
 
-  // Setup socket connection and document handling
   useEffect(() => {
     if (!quill || !docId || !token) return;
 
@@ -105,7 +101,7 @@ const DocumentEditor = () => {
       const content = JSON.stringify(quill.getContents());
       const encrypted = CryptoJS.AES.encrypt(content, getEncryptionKey()).toString();
       const cid = await uploadToIPFS(encrypted, setProgress);
-      
+
       socketRef.current.emit('saveVersion', {
         documentId: docId,
         encryptedContent: cid,
