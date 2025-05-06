@@ -32,7 +32,7 @@ A secure, decentralized, real-time collaborative document editing platform.
 
 ---
 
-## ⚙️ Setup in GitHub Codespaces / Local Machine
+## Setup in GitHub Codespaces / Local Machine
 
 ### 1. Clone & Start Backend
 
